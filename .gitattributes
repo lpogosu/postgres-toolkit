@@ -1,0 +1,20 @@
+# One line ending everywhere. backup/pitr.sh is run by bash inside CI and inside
+# a Linux container; a CR at the end of a shebang line is a startup failure that
+# only appears on the machine that is not the author's.
+* text=auto eol=lf
+*.png binary
+
+# Исключение: батники Windows без CRLF не запускаются.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Бинарные: не сравниваются построчно и не трогаются конвертацией.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.bz2 binary
