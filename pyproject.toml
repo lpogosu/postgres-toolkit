@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pgtk"
+version = "0.4.0"
+description = "Read-only PostgreSQL diagnostics for on-call: bloat, index hygiene, plans, vacuum, locks"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "lpogosu" }]
+keywords = ["postgresql", "dba", "bloat", "explain", "sre"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Database",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "psycopg[binary]>=3.1",
+    "click>=8.1",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5", "mypy>=1.10"]
+
+[project.scripts]
+pgtk = "pgtk.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/lpogosu/postgres-toolkit"
+
+[tool.setuptools.packages.find]
+include = ["pgtk*"]
+
+[tool.setuptools.package-data]
+pgtk = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RET", "ARG", "PTH",
+    "RUF", "TID", "PL", "T20",
+]
+ignore = [
+    # Diagnostic thresholds read better as literals next to the comparison than
+    # as constants defined three screens away.
+    "PLR2004",
+    # Every check takes its thresholds as keyword-only parameters. Bundling them
+    # into an options object would hide the defaults from --help and from the
+    # reader, which is the opposite of what this codebase is for.
+    "PLR0913",
+    "PLR0917",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The CLI is the one place allowed to print, and demo/ is a script.
+"pgtk/cli.py" = ["T20"]
+"pgtk/render.py" = ["T20"]
+"demo/run.py" = ["T20"]
+"demo/bench.py" = ["T20"]
+"tests/*" = ["PLR0915", "PLR2004", "ARG001"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+files = ["pgtk", "tests", "demo"]
+
+[[tool.mypy.overrides]]
+module = "psycopg.*"
+ignore_missing_imports = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "pg: test needs a live PostgreSQL container",
+]
+cache_dir = ".pytest_cache"
+pythonpath = ["."]
