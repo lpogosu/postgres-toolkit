@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: pgtk-demo
+    environment:
+      POSTGRES_USER: pgtk
+      POSTGRES_PASSWORD: pgtk_demo_password
+      POSTGRES_DB: pgtk_demo
+      TZ: UTC
+    ports:
+      - "127.0.0.1:55432:5432"
+    command:
+      - postgres
+      # The demo writes about two million rows and then throws the cluster away.
+      - -c
+      - fsync=off
+      - -c
+      - full_page_writes=off
+      - -c
+      - synchronous_commit=off
+      # Long enough that autovacuum does not repair the pathologies mid-demo,
+      # short enough that it is plainly still enabled.
+      - -c
+      - autovacuum_naptime=30s
+      - -c
+      - work_mem=4MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pgtk -d pgtk_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    # No named volume on purpose: the demo database is disposable and
+    # `make demo-down` should leave nothing behind.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
